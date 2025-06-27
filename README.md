@@ -22,23 +22,27 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 ## Quick Start
 
 1. **Clone the repository**
+
    ```bash
    git clone <your-repo-url>
    cd Practice_project_py
    ```
 
 2. **Set up virtual environment**
+
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
 3. **Install dependencies**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 4. **Run the application**
+
    ```bash
    python app.py
    ```
@@ -49,13 +53,16 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 ## Configuration
 
 ### Notion Setup
+
 1. Create a Notion integration at https://developers.notion.com/
 2. Copy your internal integration token
 3. Share your database with the integration
 4. Copy your database ID from the URL
 
 ### Environment Variables (Recommended)
+
 Create a `.env` file:
+
 ```
 NOTION_TOKEN=your_notion_token_here
 DATABASE_ID=your_database_id_here
