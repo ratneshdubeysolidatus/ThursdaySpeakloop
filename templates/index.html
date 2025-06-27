@@ -34,6 +34,15 @@
             color: #1976d2;
         }
 
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #f44336;
+        }
+
         label {
             display: block;
             margin-top: 15px;
@@ -42,7 +51,7 @@
             text-align: left;
         }
 
-        input[type="text"] {
+        input[type="text"], input[type="password"] {
             width: 100%;
             padding: 10px;
             margin-top: 5px;
@@ -93,12 +102,19 @@
 
 <div class="container">
     <h1>🎤 ThursdaySpeakloop Bot</h1>
+    
+    {% if error %}
+    <div class="error">
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+    </div>
+    {% endif %}
+    
     <form id="botForm" method="POST">
         <label>Notion Token:</label>
-        <input type="password" name="token" required>
+        <input type="password" name="token" placeholder="Leave empty to use environment variable">
 
         <label>Database ID:</label>
-        <input type="password" name="database_id" required>
+        <input type="password" name="database_id" placeholder="Leave empty to use environment variable">
 
         <button id="startBtn" type="submit">Start Bot</button>
     </form>

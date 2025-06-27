@@ -12,17 +12,22 @@ app = Flask(__name__)
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        token = request.form['token']
-        database_id = request.form['database_id']
+        token = request.form.get('token') or os.getenv('NOTION_TOKEN')
+        database_id = request.form.get('database_id') or os.getenv('DATABASE_ID')
+        
+        if not token or not database_id:
+            return render_template('index.html', error="Missing Notion token or database ID")
 
         # Save token & db id in a temp file
         with open("config.txt", "w") as f:
             f.write(f"{token}\n{database_id}")
 
-        # Run speaker_bot.py as subprocess (avoids pyttsx3 thread error)
-        subprocess.Popen(["python3", "speaker_bot.py"])
-
-        # return render_template('success.html')
+        try:
+            # Run speaker_bot.py as subprocess (avoids pyttsx3 thread error)
+            subprocess.Popen(["python3", "speaker_bot.py"])
+            return render_template('success.html')
+        except Exception as e:
+            return render_template('index.html', error=f"Failed to start bot: {str(e)}")
 
     return render_template('index.html')
 
