@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Speaker Bot Controller</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right, #e3f2fd, #fff);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #1976d2;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #333;
+            text-align: left;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        #startBtn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #startBtn:hover {
+            background-color: #1565c0;
+        }
+
+        #controls {
+            margin-top: 30px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 36px;
+            color: #1976d2;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            color: #0d47a1;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-weight: 600;
+            color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎤 ThursdaySpeakloop Bot</h1>
+    <form id="botForm" method="POST">
+        <label>Notion Token:</label>
+        <input type="password" name="token" required>
+
+        <label>Database ID:</label>
+        <input type="password" name="database_id" required>
+
+        <button id="startBtn" type="submit">Start Bot</button>
+    </form>
+
+    <div id="controls" style="display:none;">
+        <button class="icon-btn" id="toggleBtn" onclick="toggleBot()">
+            <i class="fas fa-pause"></i>
+        </button>
+        <div id="status">Bot is running...</div>
+    </div>
+</div>
+
+<script>
+    let isPaused = false;
+
+    document.getElementById('botForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        await fetch('/', {
+            method: 'POST',
+            body: formData
+        });
+
+        document.getElementById('controls').style.display = 'block';
+    });
+
+    async function toggleBot() {
+        const action = isPaused ? 'resume' : 'pause';
+        const res = await fetch(`/${action}`, { method: 'POST' });
+        const text = await res.text();
+
+        const icon = document.querySelector('#toggleBtn i');
+        if (isPaused) {
+            icon.classList.remove('fa-play');
+            icon.classList.add('fa-pause');
+        } else {
+            icon.classList.remove('fa-pause');
+            icon.classList.add('fa-play');
+        }
+
+        isPaused = !isPaused;
+        document.getElementById('status').textContent = text;
+    }
+</script>
+
+</body>
+</html>
