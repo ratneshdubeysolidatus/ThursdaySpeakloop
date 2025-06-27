@@ -22,10 +22,9 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 ## Quick Start
 
 1. **Clone the repository**
-
    ```bash
-   git clone <your-repo-url>
-   cd Practice_project_py
+   git clone https://github.com/ratneshdubeysolidatus/ThursdaySpeakloop.git
+   cd ThursdaySpeakloop
    ```
 
 2. **Set up virtual environment**
