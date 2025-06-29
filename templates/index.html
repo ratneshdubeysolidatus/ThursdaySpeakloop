@@ -25,7 +25,86 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
             text-align: center;
             width: 100%;
-            max-width: 400px;
+            max-width: 900px;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .control-panel {
+            flex: 1;
+            min-width: 400px;
+        }
+
+        .progress-panel {
+            flex: 1;
+            min-width: 400px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .progress-panel h3 {
+            margin-top: 0;
+            color: #1976d2;
+            font-size: 18px;
+        }
+
+        .progress-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: left;
+        }
+
+        .progress-item strong {
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(to right, #4caf50, #66bb6a);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .current-status {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .container {
+                max-width: 500px;
+            }
         }
 
         h1 {
@@ -68,10 +147,17 @@
             border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            transition: background-color 0.3s ease;
         }
 
-        #startBtn:hover {
+        #startBtn:hover:not(:disabled) {
             background-color: #1565c0;
+        }
+
+        #startBtn:disabled {
+            background-color: #bdbdbd;
+            color: #757575;
+            cursor: not-allowed;
         }
 
         #controls {
@@ -128,28 +214,58 @@
 <div class="container">
     <h1>🎤 ThursdaySpeakloop Bot</h1>
     
-    {% if error %}
-    <div class="error">
-        <i class="fas fa-exclamation-triangle"></i> {{ error }}
-    </div>
-    {% endif %}
-    
-    <form id="botForm" method="POST" {% if started %}style="display:none;"{% endif %}>
-        <label>Notion Token:</label>
-        <input type="password" name="token" placeholder="Leave empty to use environment variable">
+    <div class="main-content">
+        <div class="control-panel">
+            {% if error %}
+            <div class="error">
+                <i class="fas fa-exclamation-triangle"></i> {{ error }}
+            </div>
+            {% endif %}
+            
+            <form id="botForm" method="POST" {% if started %}style="display:none;"{% endif %}>
+                <label>Notion Token:</label>
+                <input type="password" name="token" placeholder="Leave empty to use environment variable">
 
-        <label>Database ID:</label>
-        <input type="password" name="database_id" placeholder="Leave empty to use environment variable">
+                <label>Database ID:</label>
+                <input type="password" name="database_id" placeholder="Leave empty to use environment variable">
 
-        <button id="startBtn" type="submit">Start Bot</button>
-    </form>
+                <button id="startBtn" type="submit">Start Bot</button>
+            </form>
 
-    <div id="controls" {% if not started %}style="display:none;"{% endif %}>
-        <button class="icon-btn" id="toggleBtn" onclick="toggleBot()">
-            <i class="fas fa-pause"></i>
-        </button>
-        <div id="status">Bot is running...</div>
-        <div id="progress" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
+            <div id="controls" {% if not started %}style="display:none;"{% endif %}>
+                <button class="icon-btn" id="toggleBtn" onclick="toggleBot()">
+                    <i class="fas fa-pause"></i>
+                </button>
+                <div id="status">Bot is running...</div>
+            </div>
+        </div>
+        
+        <div class="progress-panel" id="progressPanel" style="display:none;">
+            <h3>📊 Meeting Progress</h3>
+            
+            <div class="progress-item">
+                <strong>Current Status:</strong>
+                <div class="current-status" id="currentStatus">Ready to start</div>
+            </div>
+            
+            <div class="progress-item">
+                <strong>Current Team:</strong>
+                <div id="currentTeam">-</div>
+            </div>
+            
+            <div class="progress-item">
+                <strong>Speaking:</strong>
+                <div id="currentSpeaker">-</div>
+            </div>
+            
+            <div class="progress-item">
+                <strong>Overall Progress:</strong>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text" id="progressText">0 of 0 teams completed</div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -162,6 +278,7 @@
     {% if started %}
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('controls').style.display = 'block';
+        document.getElementById('progressPanel').style.display = 'block';
         startStatusPolling();
     });
     {% endif %}
@@ -169,6 +286,16 @@
     document.getElementById('botForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         const formData = new FormData(this);
+        const startBtn = document.getElementById('startBtn');
+        
+        // If it's a new session, reset first
+        if (startBtn.textContent === 'Start New Session') {
+            await fetch('/reset', { method: 'POST' });
+        }
+        
+        // Disable the start button immediately
+        startBtn.disabled = true;
+        startBtn.textContent = 'Starting Bot...';
         
         try {
             const response = await fetch('/', {
@@ -178,18 +305,31 @@
             
             if (response.ok) {
                 document.getElementById('controls').style.display = 'block';
+                document.getElementById('progressPanel').style.display = 'block';
+                document.querySelector('#toggleBtn').style.display = 'inline-block';
+                startBtn.textContent = 'Bot Running...';
                 startStatusPolling();
             } else {
+                // Re-enable button if there was an error
+                startBtn.disabled = false;
+                startBtn.textContent = 'Start Bot';
                 console.error('Failed to start bot');
             }
         } catch (error) {
+            // Re-enable button if there was an error
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Bot';
             console.error('Error starting bot:', error);
         }
     });
 
     function startStatusPolling() {
-        statusInterval = setInterval(updateStatus, 1000); // Poll every second
+        statusInterval = setInterval(() => {
+            updateStatus();
+            updateProgress();
+        }, 1000); // Poll every second
         updateStatus(); // Initial update
+        updateProgress(); // Initial progress update
     }
 
     async function updateStatus() {
@@ -199,6 +339,7 @@
             botStatus = data.status;
             
             const statusElement = document.getElementById('status');
+            const startBtn = document.getElementById('startBtn');
             statusElement.textContent = data.message;
             
             // Update status styling
@@ -211,6 +352,11 @@
             if (data.status === 'completed') {
                 toggleBtn.style.display = 'none';
                 clearInterval(statusInterval);
+                
+                // Re-enable start button for new session
+                startBtn.disabled = false;
+                startBtn.textContent = 'Start New Session';
+                
             } else if (data.status === 'auto_paused' || data.status === 'paused') {
                 icon.classList.remove('fa-pause');
                 icon.classList.add('fa-play');
@@ -222,6 +368,50 @@
             }
         } catch (error) {
             console.error('Error updating status:', error);
+        }
+    }
+
+    async function updateProgress() {
+        try {
+            const response = await fetch('/progress');
+            const data = await response.json();
+            
+            // Update current status
+            const statusMessages = {
+                'not_started': 'Ready to start',
+                'starting': 'Initializing...',
+                'announcing_team': `Announcing ${data.current_team}`,
+                'announcing_teammate': `Calling ${data.selected_teammate}`,
+                'update_in_progress': `${data.selected_teammate} is presenting`,
+                'auto_paused': 'Waiting for resume',
+                'team_completed': `${data.current_team} completed`,
+                'completed': 'All updates completed! 🎉'
+            };
+            
+            document.getElementById('currentStatus').textContent = 
+                statusMessages[data.status] || 'Unknown status';
+            
+            // Update team info
+            document.getElementById('currentTeam').textContent = 
+                data.current_team || '-';
+            
+            // Update speaker info
+            document.getElementById('currentSpeaker').textContent = 
+                data.selected_teammate || '-';
+            
+            // Update progress bar
+            if (data.total_teams > 0) {
+                const progressPercentage = (data.completed_teams / data.total_teams) * 100;
+                document.getElementById('progressFill').style.width = `${progressPercentage}%`;
+                document.getElementById('progressText').textContent = 
+                    `${data.completed_teams} of ${data.total_teams} teams completed`;
+            } else {
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('progressText').textContent = '0 of 0 teams completed';
+            }
+            
+        } catch (error) {
+            console.error('Error updating progress:', error);
         }
     }
 

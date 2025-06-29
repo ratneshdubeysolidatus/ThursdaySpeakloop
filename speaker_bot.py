@@ -1,5 +1,6 @@
 import random
 import time
+import json
 import pyttsx3
 from notion_client import Client
 
@@ -57,7 +58,25 @@ def run_speaker_bot(token, database_id):
             except FileNotFoundError:
                 time.sleep(0.5)
 
+    def update_progress(current_team, selected_teammate, team_number, total_teams, status):
+        """Update progress information for the web interface"""
+        progress_data = {
+            "current_team": current_team,
+            "selected_teammate": selected_teammate,
+            "team_number": team_number,
+            "total_teams": total_teams,
+            "status": status,
+            "completed_teams": team_number - 1 if status != "completed" else total_teams
+        }
+        
+        with open("progress.txt", "w") as f:
+            import json
+            f.write(json.dumps(progress_data))
+
     speak("Starting ThursdaySpeakloop bot!")
+    
+    # Initialize progress
+    update_progress("", "", 0, 0, "starting")
 
     team_data = fetch_team_data()
     remaining_teams = list(team_data.keys())
@@ -67,25 +86,37 @@ def run_speaker_bot(token, database_id):
     for i, team in enumerate(remaining_teams, 1):
         teammates = team_data[team]
         selected_teammate = random.choice(teammates)
+        
+        # Update progress: announcing team
+        update_progress(team, "", i, total_teams, "announcing_team")
 
         wait_if_paused()
         speak(f"Team {team}, it's your turn.")
         time.sleep(1)
+        
+        # Update progress: announcing teammate
+        update_progress(team, selected_teammate, i, total_teams, "announcing_teammate")
 
         wait_if_paused()
         speak(f"{selected_teammate}, please give your update.")
         time.sleep(3)
+        
+        # Update progress: team update in progress
+        update_progress(team, selected_teammate, i, total_teams, "update_in_progress")
 
         # Auto-pause after each team (except the last one)
         if i < total_teams:
-            speak(f"Team {team} update complete. Click Resume to continue to the next team.")
+            # speak(f"Team {team} update complete. Click Resume to continue to the next team.")
+            update_progress(team, selected_teammate, i, total_teams, "auto_paused")
             auto_pause_after_team()
         else:
             speak(f"Team {team} update complete.")
+            update_progress(team, selected_teammate, i, total_teams, "team_completed")
 
     speak("Thanks everyone for your updates! All teams have presented. Have a great day!")
     
     # Mark bot as completed
+    update_progress("", "", total_teams, total_teams, "completed")
     with open("control.txt", "w") as f:
         f.write("completed")
 

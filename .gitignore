@@ -38,6 +38,7 @@ instance/
 # Sensitive files
 config.txt
 control.txt
+progress.txt
 
 # IDE
 .vscode/

@@ -18,6 +18,15 @@ def index():
         if not token or not database_id:
             return render_template('index.html', error="Missing Notion token or database ID")
 
+        # Check if bot is already running
+        try:
+            with open("control.txt", "r") as f:
+                current_state = f.read().strip()
+                if current_state not in ["completed", "not_started"]:
+                    return render_template('index.html', error="Bot is already running. Please wait for it to complete.")
+        except FileNotFoundError:
+            pass  # File doesn't exist, it's safe to start
+
         # Save token & db id in a temp file
         with open("config.txt", "w") as f:
             f.write(f"{token}\n{database_id}")
@@ -64,6 +73,48 @@ def get_status():
                 return jsonify({"status": "unknown", "message": f"Unknown status: {state}"})
     except FileNotFoundError:
         return jsonify({"status": "not_started", "message": "Bot not started yet."})
+
+@app.route('/progress', methods=['GET'])
+def get_progress():
+    """Get current progress information"""
+    try:
+        with open("progress.txt", "r") as f:
+            import json
+            progress_data = json.loads(f.read())
+            return jsonify(progress_data)
+    except FileNotFoundError:
+        return jsonify({
+            "current_team": "",
+            "selected_teammate": "",
+            "team_number": 0,
+            "total_teams": 0,
+            "status": "not_started",
+            "completed_teams": 0
+        })
+    except json.JSONDecodeError:
+        return jsonify({
+            "current_team": "",
+            "selected_teammate": "",
+            "team_number": 0,
+            "total_teams": 0,
+            "status": "error",
+            "completed_teams": 0
+        })
+
+@app.route('/reset', methods=['POST'])
+def reset_session():
+    """Reset the bot session for a fresh start"""
+    try:
+        # Clean up control files
+        if os.path.exists("control.txt"):
+            os.remove("control.txt")
+        if os.path.exists("config.txt"):
+            os.remove("config.txt")
+        if os.path.exists("progress.txt"):
+            os.remove("progress.txt")
+        return jsonify({"status": "success", "message": "Session reset successfully."})
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Failed to reset session: {str(e)}"})
 
 
 if __name__ == '__main__':
