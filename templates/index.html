@@ -224,10 +224,17 @@
             
             <form id="botForm" method="POST" {% if started %}style="display:none;"{% endif %}>
                 <label>Notion Token:</label>
-                <input type="password" name="token" placeholder="Leave empty to use environment variable">
+                <input type="password" name="token" placeholder="{% if has_notion_env %}Using environment variable{% else %}Enter your Notion token{% endif %}" {% if has_notion_env %}disabled{% endif %}>
 
                 <label>Database ID:</label>
-                <input type="password" name="database_id" placeholder="Leave empty to use environment variable">
+                <input type="password" name="database_id" placeholder="{% if has_notion_env %}Using environment variable{% else %}Enter your database ID{% endif %}" {% if has_notion_env %}disabled{% endif %}>
+
+                <label>Gemini AI API Key (Optional):</label>
+                <input type="password" name="gemini_key" placeholder="{% if has_gemini_env %}Using environment variable{% else %}Enter for enhanced AI voice (optional){% endif %}" {% if has_gemini_env %}disabled{% endif %}>
+                <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
+                    🤖 With Gemini AI: Enhanced, expressive voices with personality<br>
+                    📢 Without: Standard text-to-speech (pyttsx3 fallback)
+                </small>
 
                 <button id="startBtn" type="submit">Start Bot</button>
             </form>

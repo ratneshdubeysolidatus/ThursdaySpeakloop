@@ -4,7 +4,10 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 
 ## Features
 
-- 🗣️ **Text-to-Speech**: Audibly announces team turns and selected speakers
+- 🤖 **AI-Enhanced Voices**: Gemini AI integration for expressive, human-like speech
+- 🎭 **Multiple Voice Personalities**: Choose from 30+ distinct AI voices (Kore, Puck, Charon, etc.)
+- 🎨 **Contextual Speech Styles**: Welcome, friendly, encouraging, completion tones
+- 🗣️ **Intelligent Fallback**: Gracefully falls back to pyttsx3 if Gemini unavailable
 - 🎲 **Random Selection**: Fairly shuffles teams and randomly picks team members
 - ⏸️ **Smart Auto-Pause**: Automatically pauses after each team's update
 - 🎮 **Manual Control**: Resume to continue to next team, or manually pause anytime
@@ -17,6 +20,7 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 
 - Python 3.10+
 - Notion API Token
+- **Gemini AI API Key** (optional, for enhanced voices)
 - Notion Database with the following structure:
   - `Name` (Title): Team name
   - `Developers` (Multi-select): List of team members
@@ -43,13 +47,17 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
    pip install -r requirements.txt
    ```
 
-4. **Run the application**
+5. **Configure AI Voices (Optional)**
+   - Get Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Add to `.env` file or enter in web interface
+   - Test voices at [AI Studio Speech](https://aistudio.google.com/generate-speech)
 
+6. **Run the application**
    ```bash
    python app.py
    ```
 
-5. **Open your browser**
+7. **Open your browser**
    Navigate to `http://localhost:5000`
 
 ## How It Works
@@ -90,6 +98,46 @@ NOTION_TOKEN=your_notion_token_here
 DATABASE_ID=your_database_id_here
 ```
 
+## Voice Enhancement with Gemini AI 🤖
+
+### Setup Gemini AI (Optional but Recommended)
+
+1. **Get API Key**: Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. **Test Voices**: Try different voices at [AI Studio Speech](https://aistudio.google.com/generate-speech)
+3. **Configure**: Add your API key to environment or web interface
+
+### Voice Features
+
+**🎭 Available Voices** (30+ options):
+- **Kore**: Firm, authoritative
+- **Puck**: Upbeat, energetic  
+- **Charon**: Informative, clear
+- **Leda**: Youthful, friendly
+- **Aoede**: Breezy, casual
+- **Enceladus**: Breathy, gentle
+
+**🎨 Dynamic Styles**:
+- **Welcome**: Enthusiastic meeting start
+- **Friendly**: Professional team calls
+- **Encouraging**: Supportive member selection
+- **Completion**: Celebratory wrap-up
+- **Transition**: Smooth flow between teams
+
+### Environment Variables (Enhanced)
+
+Create a `.env` file:
+```env
+# Notion Configuration
+NOTION_TOKEN=your_notion_token_here
+DATABASE_ID=your_database_id_here
+
+# Gemini AI Configuration (Optional)
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+**Without Gemini**: Bot uses pyttsx3 (standard TTS)  
+**With Gemini**: Bot uses AI-enhanced expressive voices
+
 ## Docker Deployment
 
 ```bash
@@ -100,7 +148,7 @@ docker run -p 5000:5000 thursday-speakloop-bot
 ## API Endpoints
 
 - `GET /` - Main interface with real-time status
-- `POST /` - Start bot with credentials  
+- `POST /` - Start bot with credentials
 - `POST /pause` - Manually pause the bot
 - `POST /resume` - Resume the bot (works for both manual and auto-pause)
 - `GET /status` - Get current bot status (JSON response)

@@ -2,3 +2,5 @@ Flask
 notion-client
 pyttsx3
 python-dotenv
+google-genai
+pygame

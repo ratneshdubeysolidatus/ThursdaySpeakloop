@@ -14,6 +14,7 @@ def index():
     if request.method == 'POST':
         token = request.form.get('token') or os.getenv('NOTION_TOKEN')
         database_id = request.form.get('database_id') or os.getenv('DATABASE_ID')
+        gemini_key = request.form.get('gemini_key') or os.getenv('GEMINI_API_KEY')
         
         if not token or not database_id:
             return render_template('index.html', error="Missing Notion token or database ID")
@@ -27,21 +28,30 @@ def index():
         except FileNotFoundError:
             pass  # File doesn't exist, it's safe to start
 
-        # Save token & db id in a temp file
+        # Save credentials in temp files
         with open("config.txt", "w") as f:
             f.write(f"{token}\n{database_id}")
+        
+        # Set Gemini API key as environment variable for the subprocess
+        env = os.environ.copy()
+        if gemini_key:
+            env['GEMINI_API_KEY'] = gemini_key
 
         try:
-            # Run speaker_bot.py as subprocess (avoids pyttsx3 thread error)
-            subprocess.Popen(["python3", "speaker_bot.py"])
+            # Run speaker_bot.py as subprocess with environment variables
+            subprocess.Popen(["python3", "speaker_bot.py"], env=env)
             # Initialize control state
             with open("control.txt", "w") as f:
                 f.write("resume")
-            return render_template('index.html', started=True)
+            return render_template('index.html', started=True, gemini_enabled=bool(gemini_key))
         except Exception as e:
             return render_template('index.html', error=f"Failed to start bot: {str(e)}")
 
-    return render_template('index.html')
+    # Check if environment variables are available
+    has_notion_env = bool(os.getenv('NOTION_TOKEN') and os.getenv('DATABASE_ID'))
+    has_gemini_env = bool(os.getenv('GEMINI_API_KEY'))
+    
+    return render_template('index.html', has_notion_env=has_notion_env, has_gemini_env=has_gemini_env)
 
 @app.route('/pause', methods=['POST'])
 def pause():
