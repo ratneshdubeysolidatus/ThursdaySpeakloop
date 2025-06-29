@@ -10,7 +10,7 @@ from notion_client import Client
 from google import genai
 from google.genai import types
 
-def run_speaker_bot(token, database_id):
+def run_speaker_bot(token, database_id, selected_voice="Puck"):
     notion = Client(auth=token)
     
     # Initialize Gemini AI client
@@ -169,7 +169,7 @@ def run_speaker_bot(token, database_id):
             import json
             f.write(json.dumps(progress_data))
 
-    speak("Starting ThursdaySpeakloop bot!", style="welcome", voice="Puck")
+    speak("Starting ThursdaySpeakloop bot!", style="welcome", voice=selected_voice)
     
     # Initialize progress
     update_progress("", "", 0, 0, "starting")
@@ -178,29 +178,23 @@ def run_speaker_bot(token, database_id):
     remaining_teams = list(team_data.keys())
     random.shuffle(remaining_teams)
     total_teams = len(remaining_teams)
-
-    # Voice variety for different teams
-    team_voices = ["Kore", "Puck", "Charon", "Leda", "Aoede", "Enceladus"]
     
     for i, team in enumerate(remaining_teams, 1):
         teammates = team_data[team]
         selected_teammate = random.choice(teammates)
         
-        # Use different voices for variety
-        team_voice = team_voices[i % len(team_voices)]
-        
         # Update progress: announcing team
         update_progress(team, "", i, total_teams, "announcing_team")
 
         wait_if_paused()
-        speak(f"Team {team}, it's your turn.", style="friendly", voice=team_voice)
+        speak(f"Team {team}, it's your turn.", style="friendly", voice=selected_voice)
         time.sleep(1)
         
         # Update progress: announcing teammate
         update_progress(team, selected_teammate, i, total_teams, "announcing_teammate")
 
         wait_if_paused()
-        speak(f"{selected_teammate}, please give your update.", style="encouraging", voice=team_voice)
+        speak(f"{selected_teammate}, please give your update.", style="encouraging", voice=selected_voice)
         time.sleep(3)
         
         # Update progress: team update in progress
@@ -212,10 +206,10 @@ def run_speaker_bot(token, database_id):
             update_progress(team, selected_teammate, i, total_teams, "auto_paused")
             auto_pause_after_team()
         else:
-            speak(f"Team {team} update complete.", style="completion", voice=team_voice)
+            speak(f"Team {team} update complete.", style="completion", voice=selected_voice)
             update_progress(team, selected_teammate, i, total_teams, "team_completed")
 
-    speak("Thanks everyone for your updates! All teams have presented. Have a great day!", style="completion", voice="Puck")
+    speak("Thanks everyone for your updates! All teams have presented. Have a great day!", style="completion", voice=selected_voice)
     
     # Mark bot as completed
     update_progress("", "", total_teams, total_teams, "completed")
@@ -224,6 +218,8 @@ def run_speaker_bot(token, database_id):
 
 if __name__ == "__main__":
     with open("config.txt", "r") as f:
-        token = f.readline().strip()
-        database_id = f.readline().strip()
-    run_speaker_bot(token, database_id)
+        lines = f.read().strip().split('\n')
+        token = lines[0]
+        database_id = lines[1]
+        selected_voice = lines[2] if len(lines) > 2 else "Puck"  # Default to Puck
+    run_speaker_bot(token, database_id, selected_voice)

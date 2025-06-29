@@ -47,19 +47,35 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
    pip install -r requirements.txt
    ```
 
-4. **Configure AI Voices (Optional)**
+4. **Configure Environment Variables**
+
+   Copy the example environment file and configure:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edit `.env` with your credentials:
+
+   ```env
+   NOTION_TOKEN=your_notion_token
+   DATABASE_ID=your_database_id
+   GEMINI_API_KEY=your_gemini_key  # Optional for AI voices
+   ```
+
+5. **Configure AI Voices (Optional)**
 
    - Get Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-   - Add to `.env` file or enter in web interface
+   - Add to `.env` file (required for enhanced voices)
    - Test voices at [AI Studio Speech](https://aistudio.google.com/generate-speech)
 
-5. **Run the application**
+6. **Run the application**
 
    ```bash
    python app.py
    ```
 
-6. **Open your browser**
+7. **Open your browser**
    Navigate to `http://localhost:5000`
 
 ## How It Works
@@ -142,6 +158,15 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 **Without Gemini**: Bot uses pyttsx3 (standard TTS)  
 **With Gemini**: Bot uses AI-enhanced expressive voices
+
+### Voice Selection
+
+The bot now provides **consistent voice selection** throughout the meeting:
+
+- **UI Selection**: Choose your preferred voice from the dropdown menu
+- **Available Voices**: Kore, Puck, Charon, Leda, Aoede, Enceladus
+- **Consistent Experience**: Same voice used for all announcements
+- **Security**: Gemini API key secured via environment variables only
 
 ## Docker Deployment
 

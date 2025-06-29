@@ -229,11 +229,18 @@
                 <label>Database ID:</label>
                 <input type="password" name="database_id" placeholder="{% if has_notion_env %}Using environment variable{% else %}Enter your database ID{% endif %}" {% if has_notion_env %}disabled{% endif %}>
 
-                <label>Gemini AI API Key (Optional):</label>
-                <input type="password" name="gemini_key" placeholder="{% if has_gemini_env %}Using environment variable{% else %}Enter for enhanced AI voice (optional){% endif %}" {% if has_gemini_env %}disabled{% endif %}>
+                <label>Voice Selection:</label>
+                <select name="voice_name" style="width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 8px;">
+                    <option value="Kore">Kore - Firm, authoritative</option>
+                    <option value="Puck" selected>Puck - Upbeat, energetic</option>
+                    <option value="Charon">Charon - Informative, clear</option>
+                    <option value="Leda">Leda - Youthful, friendly</option>
+                    <option value="Aoede">Aoede - Breezy, casual</option>
+                    <option value="Enceladus">Enceladus - Breathy, gentle</option>
+                </select>
                 <small style="color: #666; font-size: 12px; margin-top: 5px; display: block;">
-                    🤖 With Gemini AI: Enhanced, expressive voices with personality<br>
-                    📢 Without: Standard text-to-speech (pyttsx3 fallback)
+                    🎭 Choose a consistent voice for all announcements<br>
+                    {% if has_gemini_env %}🤖 Enhanced AI voice from environment{% else %}📢 Standard text-to-speech (set GEMINI_API_KEY for AI voice){% endif %}
                 </small>
 
                 <button id="startBtn" type="submit">Start Bot</button>

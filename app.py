@@ -14,7 +14,7 @@ def index():
     if request.method == 'POST':
         token = request.form.get('token') or os.getenv('NOTION_TOKEN')
         database_id = request.form.get('database_id') or os.getenv('DATABASE_ID')
-        gemini_key = request.form.get('gemini_key') or os.getenv('GEMINI_API_KEY')
+        voice_name = request.form.get('voice_name', 'Puck')  # Default to Puck
         
         if not token or not database_id:
             return render_template('index.html', error="Missing Notion token or database ID")
@@ -28,14 +28,12 @@ def index():
         except FileNotFoundError:
             pass  # File doesn't exist, it's safe to start
 
-        # Save credentials in temp files
+        # Save credentials and voice preference in temp files
         with open("config.txt", "w") as f:
-            f.write(f"{token}\n{database_id}")
+            f.write(f"{token}\n{database_id}\n{voice_name}")
         
-        # Set Gemini API key as environment variable for the subprocess
+        # Set environment variables for the subprocess (Gemini key only from environment)
         env = os.environ.copy()
-        if gemini_key:
-            env['GEMINI_API_KEY'] = gemini_key
 
         try:
             # Run speaker_bot.py as subprocess with environment variables
@@ -43,7 +41,9 @@ def index():
             # Initialize control state
             with open("control.txt", "w") as f:
                 f.write("resume")
-            return render_template('index.html', started=True, gemini_enabled=bool(gemini_key))
+            return render_template('index.html', started=True, 
+                                 gemini_enabled=bool(os.getenv('GEMINI_API_KEY')),
+                                 selected_voice=voice_name)
         except Exception as e:
             return render_template('index.html', error=f"Failed to start bot: {str(e)}")
 
