@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import subprocess
 import os
 from dotenv import load_dotenv
@@ -25,7 +25,10 @@ def index():
         try:
             # Run speaker_bot.py as subprocess (avoids pyttsx3 thread error)
             subprocess.Popen(["python3", "speaker_bot.py"])
-            return render_template('success.html')
+            # Initialize control state
+            with open("control.txt", "w") as f:
+                f.write("resume")
+            return render_template('index.html', started=True)
         except Exception as e:
             return render_template('index.html', error=f"Failed to start bot: {str(e)}")
 
@@ -35,13 +38,32 @@ def index():
 def pause():
     with open("control.txt", "w") as f:
         f.write("pause")
-    return "Bot paused."
+    return "Bot manually paused."
 
 @app.route('/resume', methods=['POST'])
 def resume():
     with open("control.txt", "w") as f:
         f.write("resume")
     return "Bot resumed."
+
+@app.route('/status', methods=['GET'])
+def get_status():
+    """Get current bot status"""
+    try:
+        with open("control.txt", "r") as f:
+            state = f.read().strip()
+            if state == "auto_pause":
+                return jsonify({"status": "auto_paused", "message": "Waiting for next team. Click Resume to continue."})
+            elif state == "pause":
+                return jsonify({"status": "paused", "message": "Bot manually paused."})
+            elif state == "resume":
+                return jsonify({"status": "running", "message": "Bot is running..."})
+            elif state == "completed":
+                return jsonify({"status": "completed", "message": "All team updates completed! 🎉"})
+            else:
+                return jsonify({"status": "unknown", "message": f"Unknown status: {state}"})
+    except FileNotFoundError:
+        return jsonify({"status": "not_started", "message": "Bot not started yet."})
 
 
 if __name__ == '__main__':

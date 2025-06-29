@@ -40,13 +40,31 @@ def run_speaker_bot(token, database_id):
             except FileNotFoundError:
                 break
 
+    def auto_pause_after_team():
+        """Auto-pause and wait for manual resume"""
+        with open("control.txt", "w") as f:
+            f.write("auto_pause")
+        print("⏸️ Automatically paused. Waiting for manual resume...")
+        
+        while True:
+            try:
+                with open("control.txt", "r") as f:
+                    state = f.read().strip()
+                    if state == "resume":
+                        print("▶️ Resumed by user.")
+                        break
+                    time.sleep(0.5)  # Check more frequently for responsiveness
+            except FileNotFoundError:
+                time.sleep(0.5)
+
     speak("Starting ThursdaySpeakloop bot!")
 
     team_data = fetch_team_data()
     remaining_teams = list(team_data.keys())
     random.shuffle(remaining_teams)
+    total_teams = len(remaining_teams)
 
-    for team in remaining_teams:
+    for i, team in enumerate(remaining_teams, 1):
         teammates = team_data[team]
         selected_teammate = random.choice(teammates)
 
@@ -58,7 +76,18 @@ def run_speaker_bot(token, database_id):
         speak(f"{selected_teammate}, please give your update.")
         time.sleep(3)
 
-    speak("Thanks everyone for your updates! Have a great day!")
+        # Auto-pause after each team (except the last one)
+        if i < total_teams:
+            speak(f"Team {team} update complete. Click Resume to continue to the next team.")
+            auto_pause_after_team()
+        else:
+            speak(f"Team {team} update complete.")
+
+    speak("Thanks everyone for your updates! All teams have presented. Have a great day!")
+    
+    # Mark bot as completed
+    with open("control.txt", "w") as f:
+        f.write("completed")
 
 if __name__ == "__main__":
     with open("config.txt", "r") as f:

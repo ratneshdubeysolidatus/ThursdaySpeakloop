@@ -6,8 +6,10 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 
 - 🗣️ **Text-to-Speech**: Audibly announces team turns and selected speakers
 - 🎲 **Random Selection**: Fairly shuffles teams and randomly picks team members
-- ⏸️ **Pause/Resume**: Real-time control during meetings
-- 🌐 **Web Interface**: Clean, modern UI for easy configuration
+- ⏸️ **Smart Auto-Pause**: Automatically pauses after each team's update
+- 🎮 **Manual Control**: Resume to continue to next team, or manually pause anytime
+- ✅ **Completion Detection**: Automatically stops when all teams have presented
+- 🌐 **Web Interface**: Clean, modern UI with real-time status updates
 - 📊 **Notion Integration**: Fetches team data directly from your Notion database
 - 🐳 **Docker Support**: Containerized deployment ready
 
@@ -22,6 +24,7 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 ## Quick Start
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/ratneshdubeysolidatus/ThursdaySpeakloop.git
    cd ThursdaySpeakloop
@@ -48,6 +51,26 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
 
 5. **Open your browser**
    Navigate to `http://localhost:5000`
+
+## How It Works
+
+The bot follows a structured workflow designed for smooth meeting facilitation:
+
+1. **🚀 Start**: Bot announces the beginning of the meeting
+2. **🎲 Random Selection**: Teams and speakers are shuffled for fairness
+3. **📢 Team Announcement**: Bot calls out the team name
+4. **👤 Speaker Selection**: Randomly chosen team member is announced
+5. **⏸️ Auto-Pause**: Bot automatically pauses after each team's update
+6. **▶️ Manual Resume**: Click "Resume" to continue to the next team
+7. **🔄 Repeat**: Process continues for all teams
+8. **✅ Completion**: Bot announces end when all teams have presented
+
+### Meeting Control
+
+- **Auto-Pause**: After each team completes their update, the bot pauses automatically
+- **Manual Control**: Use the web interface to pause/resume anytime
+- **Real-time Status**: Live updates show current bot state
+- **Progress Tracking**: See which teams have completed their updates
 
 ## Configuration
 
@@ -76,10 +99,11 @@ docker run -p 5000:5000 thursday-speakloop-bot
 
 ## API Endpoints
 
-- `GET /` - Main interface
-- `POST /` - Start bot with credentials
-- `POST /pause` - Pause the bot
-- `POST /resume` - Resume the bot
+- `GET /` - Main interface with real-time status
+- `POST /` - Start bot with credentials  
+- `POST /pause` - Manually pause the bot
+- `POST /resume` - Resume the bot (works for both manual and auto-pause)
+- `GET /status` - Get current bot status (JSON response)
 
 ## Project Structure
 
