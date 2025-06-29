@@ -90,6 +90,8 @@ The bot follows a structured workflow designed for smooth meeting facilitation:
 6. **▶️ Manual Resume**: Click "Resume" to continue to the next team
 7. **🔄 Repeat**: Process continues for all teams
 8. **✅ Completion**: Bot announces end when all teams have presented
+9. **🎭 Joke Section**: Bot tells a relevant, AI-generated joke to end on a positive note
+10. **👋 Sign-off**: Final goodbye message
 
 ### Meeting Control
 
@@ -158,6 +160,23 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 **Without Gemini**: Bot uses pyttsx3 (standard TTS)  
 **With Gemini**: Bot uses AI-enhanced expressive voices
+
+### AI-Powered Features
+
+With Gemini AI enabled, the bot provides enhanced functionality:
+
+**🎭 Smart Joke Generation**
+- Fresh, relevant jokes for each meeting
+- Business/tech/workplace themed humor
+- Quality validation with retry logic
+- Clean, professional content
+- Fallback jokes if AI unavailable
+
+**🗣️ Expressive Voice Synthesis**
+- Natural, context-aware speech patterns
+- Dynamic emotional styles (welcome, friendly, encouraging)
+- Professional voice consistency
+- High-quality 24kHz audio output
 
 ### Voice Selection
 

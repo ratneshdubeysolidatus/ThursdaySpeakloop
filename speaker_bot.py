@@ -9,9 +9,17 @@ import pyttsx3
 from notion_client import Client
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
 
-def run_speaker_bot(token, database_id, selected_voice="Puck"):
+# Load environment variables
+load_dotenv()
+
+def run_speaker_bot(token, database_id, selected_voice="Charon"):
     notion = Client(auth=token)
+    
+    # Initialize pyttsx3 engine (always available as fallback)
+    engine = pyttsx3.init()
+    print("📢 pyttsx3 engine initialized")
     
     # Initialize Gemini AI client
     gemini_api_key = os.getenv('GEMINI_API_KEY')
@@ -29,7 +37,6 @@ def run_speaker_bot(token, database_id, selected_voice="Puck"):
             use_gemini = False
     
     if not use_gemini:
-        engine = pyttsx3.init()
         print("📢 Using pyttsx3 for speech generation")
 
     def wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
@@ -169,6 +176,125 @@ def run_speaker_bot(token, database_id, selected_voice="Puck"):
             import json
             f.write(json.dumps(progress_data))
 
+    def fetch_and_tell_joke():
+        """Fetch and tell a relevant joke using Gemini AI"""
+        print("🎭 Preparing to tell a joke...")
+        
+        # Update progress to show joke section
+        update_progress("", "", total_teams, total_teams, "telling_joke")
+        
+        max_retries = 3
+        joke_attempts = 0
+        
+        while joke_attempts < max_retries:
+            joke_attempts += 1
+            print(f"🎯 Joke attempt {joke_attempts}/{max_retries}")
+            
+            try:
+                joke = get_joke_from_gemini()
+                if joke and is_good_joke(joke):
+                    print(f"😄 Great joke found on attempt {joke_attempts}!")
+                    speak("And now, let me share a little humor to end our meeting on a positive note.", 
+                          style="friendly", voice=selected_voice)
+                    time.sleep(0.5)
+                    speak(joke, style="friendly", voice=selected_voice)
+                    return
+                else:
+                    print(f"🔄 Joke not satisfactory, trying again...")
+                    if joke_attempts < max_retries:
+                        time.sleep(1)  # Brief pause before retry
+            except Exception as e:
+                print(f"⚠️ Error fetching joke (attempt {joke_attempts}): {e}")
+                if joke_attempts < max_retries:
+                    time.sleep(1)
+        
+        # Fallback to a pre-written joke if all attempts fail
+        print("📝 Using fallback joke...")
+        fallback_joke = "Why do programmers prefer dark mode? Because light attracts bugs!"
+        speak("And now for a little tech humor to wrap things up.", style="friendly", voice=selected_voice)
+        time.sleep(0.5)
+        speak(fallback_joke, style="friendly", voice=selected_voice)
+
+    def get_joke_from_gemini():
+        """Get a fresh joke from Gemini AI"""
+        if not use_gemini:
+            return None
+            
+        try:
+            # Craft a prompt for getting relevant, fresh jokes
+            joke_prompt = """Generate a single, original, genuinely funny joke that is:
+- Related to business, software development, programming, or workplace life
+- Clean and appropriate for a professional meeting
+- Fresh and not commonly heard
+- Short enough to be told in under 30 seconds
+- Actually funny (not just a pun)
+
+Please return ONLY the joke text, no explanations or additional commentary."""
+
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=joke_prompt
+            )
+            
+            joke = response.text.strip()
+            
+            # Clean up the response - remove quotes, extra formatting
+            joke = joke.strip('"').strip("'").strip()
+            
+            # Remove common prefixes that Gemini might add
+            prefixes_to_remove = [
+                "Here's a joke:",
+                "Here's one:",
+                "How about this:",
+                "Try this one:",
+                "Here you go:",
+                "Joke:"
+            ]
+            
+            for prefix in prefixes_to_remove:
+                if joke.lower().startswith(prefix.lower()):
+                    joke = joke[len(prefix):].strip()
+            
+            return joke
+            
+        except Exception as e:
+            print(f"⚠️ Gemini joke generation error: {e}")
+            return None
+
+    def is_good_joke(joke):
+        """Basic validation to ensure joke quality"""
+        if not joke:
+            return False
+        
+        # Check minimum length (too short might not be a real joke)
+        if len(joke) < 20:
+            return False
+        
+        # Check maximum length (too long for a quick meeting end)
+        if len(joke) > 400:  # Increased slightly for longer jokes
+            return False
+        
+        # Check for some indicators of a proper joke structure
+        joke_indicators = [
+            "why", "what", "how", "where", "who",  # Question-based jokes
+            "walked into", "said to", "replied",    # Story-based jokes
+            "difference between", "called",         # Definition jokes
+            "manager", "developer", "programmer",   # Professional context
+            "code", "bug", "feature", "deploy",     # Tech context
+        ]
+        
+        joke_lower = joke.lower()
+        has_joke_structure = any(indicator in joke_lower for indicator in joke_indicators)
+        
+        # Also accept if it has quotation marks (dialogue) or exclamation marks (punchlines)
+        has_dialogue_or_punchline = '"' in joke or "!" in joke or "?" in joke
+        
+        # Accept jokes with tech/business terms even without traditional structure
+        tech_terms = ["sprint", "production", "local", "backend", "frontend", "api", "server"]
+        has_tech_context = any(term in joke_lower for term in tech_terms)
+        
+        return has_joke_structure or has_dialogue_or_punchline or has_tech_context
+
     speak("Starting ThursdaySpeakloop bot!", style="welcome", voice=selected_voice)
     
     # Initialize progress
@@ -188,14 +314,14 @@ def run_speaker_bot(token, database_id, selected_voice="Puck"):
 
         wait_if_paused()
         speak(f"Team {team}, it's your turn.", style="friendly", voice=selected_voice)
-        time.sleep(1)
+        
+        # Brief pause and then call the teammate immediately
+        # time.sleep(0.3)  # Minimal pause for natural flow
         
         # Update progress: announcing teammate
         update_progress(team, selected_teammate, i, total_teams, "announcing_teammate")
-
-        wait_if_paused()
         speak(f"{selected_teammate}, please give your update.", style="encouraging", voice=selected_voice)
-        time.sleep(3)
+        # time.sleep(3)
         
         # Update progress: team update in progress
         update_progress(team, selected_teammate, i, total_teams, "update_in_progress")
@@ -209,7 +335,12 @@ def run_speaker_bot(token, database_id, selected_voice="Puck"):
             speak(f"Team {team} update complete.", style="completion", voice=selected_voice)
             update_progress(team, selected_teammate, i, total_teams, "team_completed")
 
-    speak("Thanks everyone for your updates! All teams have presented. Have a great day!", style="completion", voice=selected_voice)
+    speak("Thanks everyone for your updates! All teams have presented.", style="completion", voice=selected_voice)
+    
+    # Add joke section
+    fetch_and_tell_joke()
+    
+    speak("Have a great day everyone!", style="completion", voice=selected_voice)
     
     # Mark bot as completed
     update_progress("", "", total_teams, total_teams, "completed")
@@ -221,5 +352,5 @@ if __name__ == "__main__":
         lines = f.read().strip().split('\n')
         token = lines[0]
         database_id = lines[1]
-        selected_voice = lines[2] if len(lines) > 2 else "Puck"  # Default to Puck
+        selected_voice = lines[2] if len(lines) > 2 else "Charon"  # Default to Charon
     run_speaker_bot(token, database_id, selected_voice)

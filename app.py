@@ -14,7 +14,7 @@ def index():
     if request.method == 'POST':
         token = request.form.get('token') or os.getenv('NOTION_TOKEN')
         database_id = request.form.get('database_id') or os.getenv('DATABASE_ID')
-        voice_name = request.form.get('voice_name', 'Puck')  # Default to Puck
+        voice_name = request.form.get('voice_name', 'Charon')  # Default to Charon
         
         if not token or not database_id:
             return render_template('index.html', error="Missing Notion token or database ID")
