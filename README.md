@@ -47,17 +47,19 @@ An automated meeting facilitator bot that integrates with Notion databases to ra
    pip install -r requirements.txt
    ```
 
-5. **Configure AI Voices (Optional)**
+4. **Configure AI Voices (Optional)**
+
    - Get Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
    - Add to `.env` file or enter in web interface
    - Test voices at [AI Studio Speech](https://aistudio.google.com/generate-speech)
 
-6. **Run the application**
+5. **Run the application**
+
    ```bash
    python app.py
    ```
 
-7. **Open your browser**
+6. **Open your browser**
    Navigate to `http://localhost:5000`
 
 ## How It Works
@@ -109,14 +111,16 @@ DATABASE_ID=your_database_id_here
 ### Voice Features
 
 **🎭 Available Voices** (30+ options):
+
 - **Kore**: Firm, authoritative
-- **Puck**: Upbeat, energetic  
+- **Puck**: Upbeat, energetic
 - **Charon**: Informative, clear
 - **Leda**: Youthful, friendly
 - **Aoede**: Breezy, casual
 - **Enceladus**: Breathy, gentle
 
 **🎨 Dynamic Styles**:
+
 - **Welcome**: Enthusiastic meeting start
 - **Friendly**: Professional team calls
 - **Encouraging**: Supportive member selection
@@ -126,6 +130,7 @@ DATABASE_ID=your_database_id_here
 ### Environment Variables (Enhanced)
 
 Create a `.env` file:
+
 ```env
 # Notion Configuration
 NOTION_TOKEN=your_notion_token_here
